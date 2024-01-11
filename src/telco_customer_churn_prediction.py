@@ -32,6 +32,10 @@
 
 # # Importing necessary libraries and dataset
 
+# pylint: disable=import-error
+
+pylint: disable = import-error
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
