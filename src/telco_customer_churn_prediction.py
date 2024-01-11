@@ -35,7 +35,7 @@
 # pylint: disable=import-error
 # pylint: disable=unused-import
 # pylint: disable=unnecessary-semicolon
-# pylint: disable=line-too-long
+# pylint: disable=line-too-long,another-error-code
 # pylint: disable=redefined-outer-name
 # pylint: disable=trailing-whitespace
 
@@ -245,6 +245,7 @@ dependents = df[df['Churn'] == 1]['Dependents'].value_counts()
 dependents = [dependents[0] / sum(dependents) * 100,dependents[1] / sum(dependents) * 100] # No - Yes
 
 
+colors = ['#E94B3C','#2D2926']
 
 ax,fig = plt.subplots(nrows = 1,ncols = 4,figsize = (15,15))
 
