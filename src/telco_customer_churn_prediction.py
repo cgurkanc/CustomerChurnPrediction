@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 # # Telco Customer Churn Prediction
 
 # Bu not defterimizde şirketten ayrılacak müşterileri tahmin edebilecek bir makine öğrenmesi modeli geliştireceğiz.
@@ -35,9 +32,6 @@
 
 # # Importing necessary libraries and dataset
 
-# In[1]:
-
-
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -61,18 +55,11 @@ from catboost import CatBoostClassifier
 from sklearn.linear_model import LogisticRegression
 
 
-# In[2]:
-
-
 df = pd.read_csv("data/WA_Fn-UseC_-Telco-Customer-Churn.csv")
 df.head()
 
 
 # # Exploratory Data Analysis
-
-
-# In[3]:
-
 
 def check_data(dataframe,head=5):
     print(20*"-" + "Information".center(20) + 20*"-")
@@ -92,20 +79,12 @@ check_data(df)
 # ### Yorumlar
 
 # Veri kümesinde eksik değer yok, bu iyi bir şey. Ancak veri türleriyle ilgili birkaç gözlem vardır:
-# 
 # * TotalCharges: Bu sütun şu anda nesne (dize) biçimindedir; bu, sayısal olmayan karakterlerin mevcut olduğunu gösterebilir. Bu sütun ideal olarak analiz için sayısal formatta olmalıdır.
-# 
+
 # * SeniorCitizen: Bir tam sayıdır (int64), eğer ikili bir gösterge (0 veya 1) olacaksa uygundur. Ancak yaş kategorisi olacaksa bunu da gözden geçirmemiz gerekebilir.
-# 
+
 # * Müşteri Kimliği: Nesne türü olarak doğru olsa da, bireysel müşterileri takip etmediğimiz sürece bu sütun analiz için gerekli olmayabilir.
 
-# In[ ]:
-
-
-
-
-
-# In[4]:
 
 
 df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
@@ -125,8 +104,6 @@ new_missing_values
 # 
 # Daha Fazla Araştırın: Karar vermeden önce, değerlerin neden eksik olduğunu anlamak için bu belirli satırlara bakmak isteyebiliriz.
 
-# In[5]:
-
 
 # Display the rows with missing values in 'TotalCharges'
 missing_total_charges_rows = df[df['TotalCharges'].isnull()]
@@ -135,13 +112,7 @@ missing_total_charges_rows
 
 # Toplam Ücretlerin eksik olduğu satırlar incelendiğinde bir model ortaya çıkıyor: tüm bu müşterilerin kullanım süresi 0'dır. Bu, bu müşterilerin yeni olduğunu ve henüz faturalandırılmadığını gösterir; bu da toplam ücretlerin yokluğunu açıklar.
 
-# In[6]:
-
-
 df['TotalCharges'].fillna(0, inplace=True)
-
-
-# In[7]:
 
 
 df.isnull().sum()
@@ -149,18 +120,10 @@ df.isnull().sum()
 
 # Since CustomerID is likely a unique identifier for each customer and may not contribute to aggregate data analysis, we could either keep it for identification purposes or remove it if it's not needed for the analysis.
 
-# In[8]:
-
-
 df.drop('customerID', axis=1, inplace=True)
 
 # Display the first few rows of the dataset to confirm the drop
 df.head()
-
-
-# In[ ]:
-
-
 
 
 
@@ -174,8 +137,6 @@ df.head()
 # 
 
 # ## Summary Statistics
-
-# In[9]:
 
 
 def grab_col_names(dataframe, cat_th=10, car_th=20):
@@ -206,14 +167,7 @@ cat_cols, num_cols, cat_but_car = grab_col_names(df)
 
 # ## Numerik Değişkenler
 
-# In[10]:
-
-
 num_cols
-
-
-# In[11]:
-
 
 df[num_cols].describe().T
 
@@ -226,9 +180,6 @@ df[num_cols].describe().T
 # 
 # Toplam Ücretler: Toplam ücretler büyük farklılıklar gösterir ve ortalama 2279,73 USD civarındadır. Dağıtım çarpıktır ve maksimum ücret 8684,80 USD'dir.
 # 
-
-# In[12]:
-
 
 def num_summary(dataframe, numerical_col, plot=False):
     quantiles = [0.10, 0.20, 0.40, 0.50, 0.60, 0.80, 0.90, 0.95, 0.99]
@@ -256,45 +207,12 @@ for col in num_cols:
 # * Toplam Masraflar: Dağıtım sağa çarpıktır, bu da çok sayıda müşterinin nispeten daha düşük toplam ücretlere sahip olduğunu gösterir; bu da önemli sayıda müşterinin daha düşük kullanım süresine sahip olduğuyla uyumludur
 # 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
 
 # ## Kategorik Değişkenler
 
-# In[13]:
-
-
 cat_cols
 
-
-# In[14]:
-
-
 df[cat_cols].describe(include=["object"])
-
-
-# In[ ]:
-
-
-
-
-
-# In[15]:
 
 
 def cat_summary(dataframe, col_name, plot=False):
@@ -330,27 +248,13 @@ for col in cat_cols:
 # 
 # * Churn: Kaybetme sütunundaki 'Hayır' sıklığının gösterdiği gibi, kaybetme oranı elde tutma oranından daha düşüktür.
 
-# In[ ]:
-
-
-
-
 
 # ## Churn Analizi
-
-# In[16]:
-
 
 df["Churn"].value_counts()
 
 
-# In[17]:
-
-
 df["Churn"] = df["Churn"].map({'No':0,'Yes':1})
-
-
-# In[18]:
 
 
 colors = ['#E94B3C','#2D2926']
@@ -366,9 +270,6 @@ plt.title('Churn - Not-Churn %');
 
 plt.title('Number of Churn - Not-Churn Customers');
 plt.show()
-
-
-# In[ ]:
 
 
 
@@ -392,14 +293,6 @@ plt.show()
 # 
 
 # Next, let's analyze the distribution of some key categorical variables, especially those that might have a significant impact on churn, like Contract, InternetService, and PaymentMethod. 
-
-# In[ ]:
-
-
-
-
-
-# In[19]:
 
 
 def target_vs_category_visual(dataframe,target, categorical_col):
@@ -461,10 +354,8 @@ for col in cat_cols:
 # 
 # * Elektronik çek yöntemini veya sorunsuz ve kullanıcı dostu hale getirin.
 
+
 # ### Categorical Variables for Churn mean
-
-# In[20]:
-
 
 for col in cat_cols:
     target_summary_with_cat(df,"Churn",col)
@@ -473,8 +364,6 @@ for col in cat_cols:
 # ## Group 1 : Customer Information :
 # gender | SeniorCitizen | Partner | Dependents
 # 
-
-# In[21]:
 
 
 gender = df[df['Churn'] == 1]['gender'].value_counts()
@@ -489,8 +378,6 @@ partner = [partner[0] / sum(partner) * 100,partner[1] / sum(partner) * 100] # No
 dependents = df[df['Churn'] == 1]['Dependents'].value_counts()
 dependents = [dependents[0] / sum(dependents) * 100,dependents[1] / sum(dependents) * 100] # No - Yes
 
-
-# In[22]:
 
 
 ax,fig = plt.subplots(nrows = 1,ncols = 4,figsize = (15,15))
@@ -525,17 +412,9 @@ plt.title('Dependents');
 # 
 # Tek başına yaşayan müşteriler hizmetleri kesmiş durumda. Partners & Dependents verilerine göre, ortaya çıkan müşterilerin ortalama %73,4'ü tek başına yaşıyordu.
 
-# In[ ]:
-
-
-
-
 
 # ## Group 2: Services Subscribed by the Customer :¶
 # PhoneService | MultipleLines | InternetService | StreamingTV | StreamingMovies |¶
-# 
-
-# In[23]:
 
 
 phoneservice = df[df['Churn'] == 1]['PhoneService'].value_counts()
@@ -552,9 +431,6 @@ streamingtv = [streamingtv[0] / sum(streamingtv) * 100,streamingtv[1] / sum(stre
 
 streamingmovies = df[df['Churn'] == 1]['StreamingMovies'].value_counts()
 streamingmovies = [streamingmovies[0] / sum(streamingmovies) * 100,streamingmovies[1] / sum(streamingmovies) * 100, streamingmovies[2] / sum(streamingmovies) * 100] # No - No Internet Service - Yes 
-
-
-# In[24]:
 
 
 ax,fig = plt.subplots(nrows = 1,ncols = 2,figsize = (8,8))
@@ -596,18 +472,9 @@ plt.title('StreamingMovies');
 # 
 # * StreamingTV ve StreamingMovies için bu hizmetlere sahip olmayan müşteriler aboneliklerini kesinlikle iptal etti, ancak müşterilerin ortalama %43,7'si akış içeriğini tüketmelerine rağmen aboneliklerini değiştirdi.
 
-# In[ ]:
-
-
-
-
 
 # ## Group 2: Services Subscribed by the Customer
 # OnlineSecurity | OnlineBackup | DeviceProtection | TechSupport 
-# 
-
-# In[25]:
-
 
 onlinesecurity = df[df['Churn'] == 1]['OnlineSecurity'].value_counts()
 onlinesecurity = [onlinesecurity[0] / sum(onlinesecurity) * 100,onlinesecurity[1] / sum(onlinesecurity) * 100, onlinesecurity[2] / sum(onlinesecurity) * 100] # No - No Internet Service - Yes 
@@ -621,14 +488,6 @@ deviceprotection = [deviceprotection[0] / sum(deviceprotection) * 100,deviceprot
 techsupport = df[df['Churn'] == 1]['TechSupport'].value_counts()
 techsupport = [techsupport[0] / sum(techsupport) * 100,techsupport[1] / sum(techsupport) * 100, techsupport[2] / sum(techsupport) * 100] # No - No Internet Service - Yes 
 
-
-# In[ ]:
-
-
-
-
-
-# In[26]:
 
 
 ax,fig = plt.subplots(nrows = 1,ncols = 4,figsize = (15,15))
@@ -657,9 +516,6 @@ plt.title('TechSupport');
 # Yukarıdaki pasta grafikleri OnlineSecurity, OnlineBackup, DeviceProtection & TechSupport sağlamanın önemini vurguluyor, çünkü müşterilerin ortalama %71,6'sı bu özelliklerin eksikliği nedeniyle hizmetlerini kesiyor!
 
 # ## Group 3 : Contract | PaperlessBilling | PaymentMethod |¶
-# 
-
-# In[27]:
 
 
 contract = df[df['Churn'] == 1]['Contract'].value_counts()
@@ -671,9 +527,6 @@ paperlessbilling = [paperlessbilling[0] / sum(paperlessbilling) * 100,paperlessb
 paymentmethod = df[df['Churn'] == 1]['PaymentMethod'].value_counts()
 paymentmethod = [paymentmethod[0] / sum(paymentmethod) * 100, paymentmethod[1] / sum(paymentmethod) * 100, 
             paymentmethod[2] / sum(paymentmethod) * 100, paymentmethod[3] / sum(paymentmethod) * 100] 
-
-
-# In[28]:
 
 
 ax,fig = plt.subplots(nrows = 1,ncols = 3,figsize = (12,12))
@@ -705,9 +558,6 @@ plt.title('PaymentMethod');
 
 # ### Numerical Variables vs Target Variable(Churn)
 
-# In[29]:
-
-
 def target_summary_with_num(dataframe,target, numerical_col):
     print(dataframe.groupby(target).agg({numerical_col:"mean"}), end="\n\n")
     print("###################################")
@@ -717,15 +567,10 @@ for col in num_cols:
     target_summary_with_num(df,"Churn",col)
 
 
-# In[30]:
-
 
 for col in num_cols:
     df.groupby('Churn').agg({col:'mean'}).plot(kind='bar', rot = 0,figsize=(16,8))
 
-
-
-# In[31]:
 
 
 df['MonthlyCharges_Group'] = [int(i / 5) for i in df['MonthlyCharges']]
@@ -746,25 +591,16 @@ for i in range(len(num_cols[1:])):
 # 
 # * Çok yüksek sayıda müşteri, 500'ün altındaki TotalCharges için hizmetlerden vazgeçti
 
-# In[ ]:
-
-
-
 
 
 # ## Numerical features vs Categorical features w.r.t Target variable (Churn)
 # 
-
-# In[32]:
-
 
 l1 = ['gender','SeniorCitizen','Partner','Dependents'] # Customer Information
 l2 = ['PhoneService','MultipleLines','InternetService','StreamingTV','StreamingMovies',
       'OnlineSecurity','OnlineBackup','DeviceProtection','TechSupport'] # Services Signed Up for!
 l3 = ['Contract','PaperlessBilling','PaymentMethod'] # Payment Information
 
-
-# In[33]:
 
 
 fig = plt.subplots(nrows = 2,ncols = 2,figsize = (15,10))
@@ -784,22 +620,9 @@ for i in range(4):
 # 
 # * Benzer şekilde iş ortakları olan müşteriler de hizmeti 5 ila 45 ay süreyle kullanmaya devam etti.
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
 
 
 # ### tenure vs Group 2: Services Subscribed by the Customer : PhoneService | MultipleLines | InternetService | StreamingTV | StreamingMovies 
-
-# In[34]:
-
 
 fig = plt.subplots(nrows = 1,ncols = 2,figsize = (15,5))
 
@@ -832,17 +655,10 @@ for i in range(len(l2[3:5])):
 # 
 # * StreamingTV ve StreamingMovies'e benzer şekilde, yaklaşık 10 - 40 aylık bir kullanım dışı kalma süresi gözlemlenebilir!
 
-# In[ ]:
-
-
-
 
 
 # ### tenure vs Group 2: Services Subscribed by the Customer : OnlineSecurity | OnlineBackup | DeviceProtection | TechSupport
 # 
-
-# In[35]:
-
 
 fig = plt.subplots(nrows = 2,ncols = 2,figsize = (20,14))
 for i in range(len(l2[-4:])):
@@ -859,17 +675,11 @@ for i in range(len(l2[-4:])):
 # 
 # 30 - 35 aylık dönem, müşterilerin mevcut hizmetlere devam mı edecekleri yoksa yukarıdaki özelliklere mi geçecekleri konusunda bir telefon görüşmesi yaptıkları dönemdir!
 
-# In[ ]:
-
-
 
 
 
 # ## tenure vs Group 3 : Contract | PaperlessBilling | PaymentMethod |¶
 # 
-
-# In[36]:
-
 
 fig = plt.subplots(nrows = 1,ncols = 3,figsize = (25,7))
 for i in range(len(l3)):
@@ -886,23 +696,12 @@ for i in range(len(l3)):
 # 
 # * Ödeme Yöntemi söz konusu olduğunda, Banka Havalesi (otomatik) ve Kredi Kartının (otomatik) ortalama kayıp vadesi, 20 ayın üzerinde, Elektronik çek ve Posta çekinin neredeyse iki katıdır (sırasıyla yaklaşık 10 ay ve yaklaşık 5 ay).
 
-# In[ ]:
-
 
 
 
 
 # ## MonthlyCharges vs Group 1 : Customer Information : gender | SeniorCitizen | Partner | Dependents
 # 
-
-# In[ ]:
-
-
-
-
-
-# In[37]:
-
 
 fig = plt.subplots(nrows = 2,ncols = 2,figsize = (15,10))
 for i in range(4):
@@ -925,9 +724,6 @@ for i in range(4):
 
 # ### MonthlyCharges vs Group 2: Services Subscribed by the Customer : PhoneService | MultipleLines | InternetService | StreamingTV | StreamingMovies
 # 
-
-# In[38]:
-
 
 fig = plt.subplots(nrows = 1,ncols = 2,figsize = (15,5))
 
@@ -963,8 +759,6 @@ for i in range(len(l2[3:5])):
 
 # ## MonthlyCharges vs Group 2: Services Subscribed by the Customer : OnlineSecurity | OnlineBackup | DeviceProtection | TechSupport
 
-# In[39]:
-
 
 fig = plt.subplots(nrows = 2,ncols = 2,figsize = (20,14))
 for i in range(len(l2[-4:])):
@@ -982,16 +776,11 @@ for i in range(len(l2[-4:])):
 # 
 # * Bu hizmetlere abone olan müşteriler, muhtemelen MonthlyCharges nedeniyle aboneliğini iptal etmeyi düşünmüyorlar çünkü abonelikten çıkıp devam eden müşterilerin değer aralığı hemen hemen aynı!
 
-# In[ ]:
-
 
 
 
 
 # ### MonthlyCharges vs Group 3 : Contract | PaperlessBilling | PaymentMethod 
-
-# In[40]:
-
 
 fig = plt.subplots(nrows = 1,ncols = 3,figsize = (25,7))
 
@@ -1010,22 +799,9 @@ for i in range(len(l3)):
 # 
 # * Posta çeki ise ayrılan ve devam eden müşterilerin en düşük başlangıç değerlerine sahiptir.
 
-# In[ ]:
-
-
-
 
 
 # ## TotalCharges vs Group 1 : Customer Information : gender | SeniorCitizen | Partner | Dependents 
-
-# In[ ]:
-
-
-
-
-
-# In[41]:
-
 
 fig = plt.subplots(nrows = 2,ncols = 2,figsize = (15,10))
 for i in range(4):
@@ -1040,16 +816,10 @@ for i in range(4):
 # 
 # * Eşleriyle birlikte yaşayan müşterilerin Toplam Ücret ortalama değeri, yalnız yaşayanlara kıyasla daha yüksektir!
 
-# In[ ]:
-
-
-
 
 
 # ## TotalCharges vs Group 2: Services Subscribed by the Customer : PhoneService | MultipleLines | InternetService | StreamingTV | StreamingMovies 
 # 
-
-# In[42]:
 
 
 fig = plt.subplots(nrows = 1,ncols = 2,figsize = (15,5))
@@ -1083,17 +853,11 @@ for i in range(len(l2[3:5])):
 # 
 # * Fiber Optik, StreamingTV ve StreamingMovies'e benzer şekilde hizmetlere devam eden müşteriler 3000 - 6000 arasında ödeme yapar.
 
-# In[ ]:
-
-
 
 
 
 # ## TotalCharges vs Group 2: Services Subscribed by the Customer : OnlineSecurity | OnlineBackup | DeviceProtection | TechSupport |
 # 
-
-# In[43]:
-
 
 fig = plt.subplots(nrows = 2,ncols = 2,figsize = (20,14))
 for i in range(len(l2[-4:])):
@@ -1112,9 +876,6 @@ for i in range(len(l2[-4:])):
 # ## TotalCharges vs Group 3 : Contract | PaperlessBilling | PaymentMethod |¶
 # 
 
-# In[44]:
-
-
 fig = plt.subplots(nrows = 1,ncols = 3,figsize = (25,7))
 
 for i in range(len(l3)):
@@ -1129,23 +890,10 @@ for i in range(len(l3)):
 # 
 # * PaymentMethod için müşteriler 0 - 2000 arası daha kısa bir aralık için Elektronik çek kullanarak ödeme yapmaya şüpheyle yaklaşırken, Banka havalesi (otomatik) ve Kredi Kartı (otomatik) için bu aralık 0 - 4000 civarındadır.
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
 
 
 # ## Numerical features vs Numerical features w.r.t Target variable (Churn) :
 # 
-
-# In[45]:
-
 
 a = 0
 fig,ax = plt.subplots(nrows = 3,ncols = 1,figsize = (15,15))
@@ -1160,10 +908,6 @@ for i in range(len(num_cols)):
             plt.title(title)
 
 
-# In[ ]:
-
-
-
 
 
 # ### Comments
@@ -1176,22 +920,10 @@ for i in range(len(num_cols)):
 # 
 # Aylık Ücretler 70 ve üzerine ulaştığında müşteriler aboneliklerini iptal etmeye karar vermiş görünüyordu.
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
 
 
 
 # # Feature Engineering
-
-# In[46]:
-
 
 from sklearn.preprocessing import MinMaxScaler,StandardScaler
 mms = MinMaxScaler() # Normalization
@@ -1218,34 +950,13 @@ df.head()
 # 
 # * Standardizasyon: Yukarıdaki veriler için hiçbir özellik standartlaştırılmamıştır.
 
-# In[ ]:
-
-
 
 
 
 # ### Correlation Matrix
 
-# In[47]:
-
-
 plt.figure(figsize = (20,5))
 sns.heatmap(df.corr(),cmap = colors,annot = True);
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[48]:
 
 
 corr = df.corrwith(df['Churn']).sort_values(ascending = False).to_frame()
@@ -1255,22 +966,8 @@ sns.heatmap(corr,annot = True,cmap = colors,linewidths = 0.4,linecolor = 'black'
 plt.title('Correlation w.r.t Outcome');
 
 
-# In[ ]:
-
-
-
-
 
 # ### Feature Selection 
-
-# In[ ]:
-
-
-
-
-
-# In[49]:
-
 
 from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
@@ -1284,27 +981,12 @@ for i in text_data_features :
     print(i,' : ',df[i].unique(),' = ',le.inverse_transform(df[i].unique()))
 
 
-# In[50]:
-
-
-df.head()
-
-
-# In[51]:
-
 
 from sklearn.feature_selection import SelectKBest
 from sklearn.feature_selection import chi2,mutual_info_classif
 
 
-# In[52]:
-
-
 df.loc[:,cat_cols]
-
-
-# In[53]:
-
 
 features = df.loc[:,cat_cols]
 target = df.loc[:,'Churn']
@@ -1321,29 +1003,10 @@ plt.title('Selection of Categorical Features');
 
 # * PhoneService, cinsiyet, StreamingTV, StreamingMovies, MultipleLines ve InternetService, Churn ile çok düşük bir ilişki göstermektedir.
 
-# In[ ]:
-
-
-
-
 
 # ### Feature Selection for Numerical Features :¶
 # 
-
-# In[54]:
-
-
 from sklearn.feature_selection import f_classif
-
-
-# In[ ]:
-
-
-
-
-
-# In[55]:
-
 
 features = df.loc[:,num_cols]
 target = df.loc[:,'Churn']
@@ -1364,22 +1027,8 @@ plt.title('Selection of Numerical Features');
 # 
 # Yukarıdaki sonuçlardan modelleme için tüm sayısal özellikleri dahil etmemiz gerekir.
 
-# In[ ]:
-
-
-
-
-
-# In[56]:
-
-
 df.drop(columns = ['PhoneService', 'gender','StreamingTV','StreamingMovies','MultipleLines','InternetService'],inplace = True)
 df.head()
-
-
-# In[ ]:
-
-
 
 
 
@@ -1396,17 +1045,11 @@ df.head()
 # Veri dengeleme için imblearn kullanacağız.
 # pip statement : pip install imbalanced-learn
 
-# In[57]:
-
-
 import imblearn
 from collections import Counter
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
-
-
-# In[58]:
 
 
 over = SMOTE(sampling_strategy = 1)
@@ -1418,16 +1061,8 @@ f1, t1 = over.fit_resample(f1, t1)
 Counter(t1)
 
 
-# In[ ]:
-
-
-
-
 
 # # MODELING
-
-# In[59]:
-
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
@@ -1441,19 +1076,8 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.metrics import precision_recall_curve
 
 
-# In[60]:
-
 
 x_train, x_test, y_train, y_test = train_test_split(f1, t1, test_size = 0.20, random_state = 2)
-
-
-# In[ ]:
-
-
-
-
-
-# In[61]:
 
 
 def model(classifier,x_train,y_train,x_test,y_test):
@@ -1482,124 +1106,50 @@ def model_evaluation(classifier,x_test,y_test):
 
 # ### 1-) XGB Classifier
 
-# In[62]:
-
 
 from xgboost import XGBClassifier
 
 classifier_xgb = XGBClassifier(learning_rate= 0.01,max_depth = 3,n_estimators = 1000)
 
-
-# In[63]:
-
-
 model(classifier_xgb,x_train,y_train,x_test,y_test)
-
-
-# In[64]:
-
 
 model_evaluation(classifier_xgb,x_test,y_test)
 
 
-# In[ ]:
-
-
-
-
-
 # ### 2) LGBM Classifier
-
-# In[74]:
-
 
 from lightgbm import LGBMClassifier
 
 classifier_lgbm = LGBMClassifier(learning_rate= 0.01,max_depth = 3,n_estimators = 1000, force_col_wise='true',verbose=-1)
 
-
-# In[75]:
-
-
 model(classifier_lgbm,x_train,y_train,x_test,y_test)
 
-
-# In[67]:
-
-
 model_evaluation(classifier_lgbm,x_test,y_test)
-
-
-# In[ ]:
-
-
 
 
 
 # ## Random Forest Classifier
 
-# In[68]:
-
-
 from sklearn.ensemble import RandomForestClassifier
 classifier_rf = RandomForestClassifier(max_depth = 4,random_state = 0)
 
-
-# In[69]:
-
-
 model(classifier_rf,x_train,y_train,x_test,y_test)
 
-
-# In[70]:
-
-
 model_evaluation(classifier_rf,x_test,y_test)
-
-
-# In[ ]:
-
-
 
 
 
 # # Decision Tree Classifier
 
-# In[71]:
-
-
 from sklearn.tree import DecisionTreeClassifier
 classifier_dt = DecisionTreeClassifier(random_state = 1000,max_depth = 4,min_samples_leaf = 1)
 
-
-# In[72]:
-
-
 model(classifier_dt,x_train,y_train,x_test,y_test)
-
-
-# In[73]:
-
 
 model_evaluation(classifier_dt,x_test,y_test)
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
 # ## 5) Stack of XGBClassifier, LightGBMClassifier, Random Forest Classifer & Decision Tree Classifier
-# 
-
-# In[74]:
 
 
 from sklearn.ensemble import StackingClassifier
@@ -1619,14 +1169,7 @@ stack = StackingClassifier(estimators = [('classifier_xgb',classifier_xgb),
 # * DecisionTreeClassifier
 # It has an important hyperparameter known as final_estimator. It is the classifier that makes the final prediction by using the predicted classes by the various classifier and predicts the final output.
 
-# In[75]:
-
-
 model(stack,x_train,y_train,x_test,y_test)
-
-
-# In[76]:
-
 
 model_evaluation(stack,x_test,y_test)
 
@@ -1656,9 +1199,7 @@ model_evaluation(stack,x_test,y_test)
 # 
 # * Yüksek kayıp nedeniyle ödeme amaçlı Elektronik çeke son verilmesi ve tamamen Banka Havalesi (otomatik) ve Kredi Kartına (otomatik) odaklanması gerekiyor! Ancak, bu 2 Ödeme Yöntemi için ortalama kayıp süresini 20 ayın üzerinde azaltmaları istenecektir; bu da Elektronik çekin kullanım süresinin iki katıdır. 
 # 
-# 
 # * Aylık Ücretlerde Elektronik çekin alt limiti 60 civarındayken, Banka Havalesi (otomatik) ve Kredi Kartının (otomatik) alt limiti 20 civarındadır. Kağıtsız Faturalandırma, 60 başlangıç noktasıyla başka bir pahalı özelliktir; diğer seçenekler ise MonthlyCharges'da 20'den başlayan ucuzdur.
-# 
 
 
 
