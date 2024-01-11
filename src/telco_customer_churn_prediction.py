@@ -32,17 +32,14 @@
 
 # # Importing necessary libraries and dataset
 
-
 import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
-# !pip install missingno
 import missingno as msno
 from datetime import date
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
-from sklearn.neighbors import LocalOutlierFactor
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
@@ -72,7 +69,6 @@ from sklearn.feature_selection import chi2,mutual_info_classif
 from sklearn.feature_selection import f_classif
 
 from sklearn.preprocessing import LabelEncoder
-
 
 
 from sklearn.model_selection import train_test_split
@@ -107,42 +103,16 @@ def check_data(dataframe,head=5):
 
 check_data(df)
 
-
-# ### Yorumlar
-
-# Veri kümesinde eksik değer yok, bu iyi bir şey. Ancak veri türleriyle ilgili birkaç gözlem vardır:
-# * TotalCharges: Bu sütun şu anda nesne (dize) biçimindedir; bu, sayısal olmayan karakterlerin mevcut olduğunu gösterebilir. Bu sütun ideal olarak analiz için sayısal formatta olmalıdır.
-
-# * SeniorCitizen: Bir tam sayıdır (int64), eğer ikili bir gösterge (0 veya 1) olacaksa uygundur. Ancak yaş kategorisi olacaksa bunu da gözden geçirmemiz gerekebilir.
-
-# * Müşteri Kimliği: Nesne türü olarak doğru olsa da, bireysel müşterileri takip etmediğimiz sürece bu sütun analiz için gerekli olmayabilir.
-
-
-
 df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
 
 # Check for any new missing values in 'TotalCharges'
 new_missing_values = df['TotalCharges'].isnull().sum()
 new_missing_values
 
-
-# TotalCharges sütununun sayısal formata dönüştürülmesi 11 yeni eksik değerle sonuçlandı. Bunlar muhtemelen orijinal verilerin sayısal olmayan karakterlere veya sayılara dönüştürülemeyen boş dizelere sahip olduğu durumlardır.
-# 
-# Bu eksik değerleri ele almak için birkaç seçeneğimiz var:
-# 
-# Satırları Kaldırın: Veri kümesi yeterince büyükse 11 satırın kaldırılması analizi önemli ölçüde etkilemeyebilir.
-# 
-# Değerleri Değerlendirin: Bu eksik değerleri ortalama, medyan gibi bir istatistikle veya diğer sütunlara dayalı bir değerle doldurabiliriz (örneğin, Toplam Ücretleri tahmin etmek için Aylık Ücretleri ve görev süresini kullanarak).
-# 
-# Daha Fazla Araştırın: Karar vermeden önce, değerlerin neden eksik olduğunu anlamak için bu belirli satırlara bakmak isteyebiliriz.
-
-
 # Display the rows with missing values in 'TotalCharges'
 missing_total_charges_rows = df[df['TotalCharges'].isnull()]
 missing_total_charges_rows
 
-
-# Toplam Ücretlerin eksik olduğu satırlar incelendiğinde bir model ortaya çıkıyor: tüm bu müşterilerin kullanım süresi 0'dır. Bu, bu müşterilerin yeni olduğunu ve henüz faturalandırılmadığını gösterir; bu da toplam ücretlerin yokluğunu açıklar.
 
 df['TotalCharges'].fillna(0, inplace=True)
 
@@ -150,23 +120,8 @@ df['TotalCharges'].fillna(0, inplace=True)
 df.isnull().sum()
 
 
-# Since CustomerID is likely a unique identifier for each customer and may not contribute to aggregate data analysis, we could either keep it for identification purposes or remove it if it's not needed for the analysis.
-
 df.drop('customerID', axis=1, inplace=True)
 
-# Display the first few rows of the dataset to confirm the drop
-df.head()
-
-
-
-# Veri kümesi üzerinde Keşifsel Veri Analizi (EDA) gerçekleştireceğiz. EDA, veri içindeki dağılımı, eğilimleri ve ilişkileri anlamamıza yardımcı olduğundan veri analizinde çok önemli bir adımdır. İşte EDA'mız için bir plan:
-# 
-# 1. **Özet İstatistikler:** Sayısal sütunlar için temel özet istatistiklerle başlayacağız.
-# 2. **Değişkenlerin Dağılımı:** Hem sayısal ("görev süresi", "Aylık Ücretler", "Toplam Ücretler" gibi) hem de kategorik ("cinsiyet", "InternetService", "Sözleşme" gibi) temel değişkenlerin dağılımını analiz edin.
-# 3. **Korelasyon Analizi:** Sayısal değişkenler arasındaki korelasyonları inceleyin.
-# 4. **Churn Analizi:** Hedef değişken "Churn" olduğundan, özellikle farklı değişkenlerin aboneyi kaybetme oranlarıyla nasıl ilişkili olduğuna odaklanacağız.
-# 5. **Görselleştirmeler:** Verileri görselleştirmek ve kalıpları ortaya çıkarmak için çeşitli grafikler (histogramlar, çubuk grafikler, kutu grafikleri ve dağılım grafikleri gibi) kullanacağız.
-# 
 
 # ## Summary Statistics
 
@@ -203,16 +158,6 @@ num_cols
 
 df[num_cols].describe().T
 
-
-# ### Conclusions
-# 
-# Tenure : Ortalama tenure(görev süresi) yaklaşık 32 aydır ve geniş bir aralıktadır (0 ila 72 ay), bu da yeni ve uzun vadeli müşterilerin bir karışımını gösterir.
-# 
-# Aylık Ücretler: Ortalama aylık ücret yaklaşık 64,76 ABD Doları olup, ücretler 18,25 ile 118,75 ABD Doları arasında değişmektedir.
-# 
-# Toplam Ücretler: Toplam ücretler büyük farklılıklar gösterir ve ortalama 2279,73 USD civarındadır. Dağıtım çarpıktır ve maksimum ücret 8684,80 USD'dir.
-# 
-
 def num_summary(dataframe, numerical_col, plot=False):
     quantiles = [0.10, 0.20, 0.40, 0.50, 0.60, 0.80, 0.90, 0.95, 0.99]
 
@@ -226,18 +171,6 @@ def num_summary(dataframe, numerical_col, plot=False):
 
 for col in num_cols:
     num_summary(df, col, plot=True)
-
-
-# ### Yorum
-# 
-# * Tenure(Görev süresi): Dağılım, önemli sayıda yeni müşteriyi (düşük kullanım süresi) ve önemli sayıda uzun vadeli müşteriyi (yüksek kullanım süresi) gösteren iki zirve göstermektedir. Bu iki modlu dağılım, şirketteki süreleri açısından iki ana müşteri grubunu akla getiriyor.
-# 
-# 
-# * Aylık Ücretler: Dağıtım biraz iki modludur; bir tepe noktası alt uçta (yaklaşık 20 ABD Doları) ve diğeri üst uçta (yaklaşık 80-90 ABD Doları) bulunur. Bu, abone oldukları hizmetlere göre farklı müşteri gruplarının bulunduğunu gösteriyor; bazıları temel, daha düşük maliyetli hizmetleri, diğerleri ise daha pahalı paketleri tercih ediyor.
-# 
-# 
-# * Toplam Masraflar: Dağıtım sağa çarpıktır, bu da çok sayıda müşterinin nispeten daha düşük toplam ücretlere sahip olduğunu gösterir; bu da önemli sayıda müşterinin daha düşük kullanım süresine sahip olduğuyla uyumludur
-# 
 
 
 # ## Kategorik Değişkenler
@@ -260,71 +193,12 @@ def cat_summary(dataframe, col_name, plot=False):
 for col in cat_cols:
     cat_summary(df, col,plot=True)
 
-
-# ### Conclusion:
-# 
-# * Cinsiyet: Erkek ve kadın müşteri sayısı hemen hemen eşittir.
-# 
-# * Ortak ve Bağımlı Kişiler: Biraz daha fazla sayıda müşterinin ortağı veya bakmakla yükümlü olduğu kişiler yoktur.
-# 
-# * PhoneService: Çoğu müşterinin (yaklaşık %90'ı) telefon hizmeti vardır.
-# 
-# * MultipleLines, InternetService, OnlineSecurity, OnlineBackup, DeviceProtection, TechSupport, StreamingTV, StreamingMovies: 
-# Bu sütunlar çeşitli kategorilere sahiptir ve müşterilerin çoğunluğu çevrimiçi güvenlik, teknik destek vb. ek hizmetlere sahip değildir.
-# 
-# * Contract: En yaygın sözleşme türü aydan ayadır.
-# 
-# * PaperlessBilling: Müşterilerin çoğunluğu (yaklaşık %59) kağıtsız faturalandırmayı kullanıyor.
-# 
-# * PaymentMethod: En yaygın ödeme yöntemi elektronik çektir.
-# 
-# * Churn: Kaybetme sütunundaki 'Hayır' sıklığının gösterdiği gibi, kaybetme oranı elde tutma oranından daha düşüktür.
-
-
 # ## Churn Analizi
 
 df["Churn"].value_counts()
 
 
 df["Churn"] = df["Churn"].map({'No':0,'Yes':1})
-
-
-colors = ['#E94B3C','#2D2926']
-
-
-l = list(df['Churn'].value_counts())
-circle = [l[0] / sum(l) * 100,l[1] / sum(l) * 100]
-
-fig = plt.subplots(figsize = (20,5))
-plt.pie(circle,labels = ['Not-Churn Customer','Churn Customer'],autopct = '%1.1f%%',startangle = 90,explode = (0.1,0),colors = colors,
-       wedgeprops = {'edgecolor' : 'black','linewidth': 1,'antialiased' : True})
-plt.title('Churn - Not-Churn %');
-
-plt.title('Number of Churn - Not-Churn Customers');
-plt.show()
-
-
-
-
-
-# The dataset is unbalanced in a near about 3 : 1 ratio for Not-Churn : Churn customers!
-# 
-# Due to this, predictions will be biased towards Not-Churn customers.
-# 
-# Visualizations will also display this bias!
-
-# Müşteri Kayıp Dağılımı grafiği ve hesaplanan kayıp oranı aşağıdaki bilgileri sağlar:
-# 
-# Müşterilerin yaklaşık %73,46'sı ayrılmadı, bu da çoğunluğun istikrarlı müşteriler olduğunu gösteriyor.
-# 
-# Müşterilerin yaklaşık %26,54'ü işten ayrıldı; bu önemli bir orandır ve işletme için endişe kaynağı olabilir.
-# 
-# Bu kayıp oranı, müşteri kaybına katkıda bulunan faktörlerin anlaşılmasının önemini vurgulamaktadır. İşletmeler bu bilgileri müşteri tutmayı iyileştirmeye yönelik stratejiler geliştirmek için kullanabilir.
-
-# ## Categorical Variables vs Target Variable (Churn):
-# 
-
-# Next, let's analyze the distribution of some key categorical variables, especially those that might have a significant impact on churn, like Contract, InternetService, and PaymentMethod. 
 
 
 def target_vs_category_visual(dataframe,target, categorical_col):
@@ -341,52 +215,6 @@ def target_summary_with_cat(dataframe,target,categorical_col):
 for col in cat_cols:
     target_vs_category_visual(df,"Churn",col)
     
-
-
-# ### Yorumlar:
-# 
-# * Erkek ve kadın müşteriler için müşteri kaybı birbirine çok benzer!
-# 
-# * Aynı şekilde SeniorCitizens müşterilerinin sayısı da oldukça düşük! Bunun dışında, **SeniorCitizens müşterilerinde neredeyse %40'lık bir kayıp** gözlemleyebiliyoruz. 1142 SeniorCitizens müşterisinden toplam 476 müşteriye karşılık gelmektedir.
-# 
-# * Partner ile birlikte yaşayan müşteriler, Partner ile yaşamayanlara kıyasla **daha az kayıp** yaşadılar.
-# 
-# * Benzer şekilde, yanında bağımlısı(Dependents) olmayan müşteriler için de **kayıp oranı yüksek**!
-# 
-
-# 
-# * Telefon Hizmeti için, (telefon hizmeti olmamasına rağmen), hizmetleri bırakan müşteri sayısına kıyasla daha fazla müşteri elde tutuldu.
-# 
-# 
-# * Çoklu Hatlar durumunda, Çoklu Hatların mevcut olup olmadığı durumdaki kayıp oranı aynıdır.
-# 
-# 
-# * Çok sayıda müşteri internet hizmetinin sağlanmasında Fiber optik kabloların kullanılmasına karşı direnç göstermiştir. Tam tersine, yukarıdaki grafikte müşterilerin İnternet Hizmetleri için DSL kullanmayı tercih ettikleri görülüyor!
-# 
-# 
-# * StreamingTV ve StreamingMovies aynı grafiği görüntüler. StreamingTV ve StreamingMovies'e abone olup olmadıklarına bakılmaksızın birçok müşteri kaybedildi. 
-
-# * Müşterilere bir servisi söz konusu olduğunda, OnlineSecurity, OnlineBackup, DeviceProtection ve TechSupport hizmetleri yukarıdaki görselleştirmelerden çok önemlidir!
-# 
-# 
-# * Çok sayıda müşteri, yukarıda belirtilen özelliklere sahip hizmetlerin yetersiz olması durumunda servis sağlayıcısını değiştirmiştir.
-
-# 
-# * Aydan Aylık Sözleşmeye göre müşteri kaybı oldukça yüksektir. Bunun nedeni muhtemelen müşterilerin kendilerine sunulan çeşitli hizmetleri test etmeleri ve dolayısıyla paradan tasarruf etmek için 1 aylık hizmetin test edilmesidir!
-# 
-# 
-# * Diğer bir neden de internet hizmeti, yayın hizmeti ve telefon hizmetiyle ilgili genel deneyimin tutarlı olmaması olabilir. Her müşterinin farklı bir önceliği vardır ve bu nedenle 3 kişiden biri eşit düzeydeyse tüm hizmet kesilir!
-# 
-# 
-# * Kağıtsız Faturalama, çok sayıda müşterinin dağıldığını gösteriyor. Bunun nedeni muhtemelen bazı ödeme sorunları veya makbuz sorunlarıdır.
-# 
-# 
-# * Müşteriler Elektronik çek Ödeme Yöntemine açıkça kızdılar. Elektronik çek kullanılarak ödenen 2365 adet faturadan şaşırtıcı bir şekilde 1071 müşteri bu ödeme yöntemi sayesinde hizmet havuzundan çıktı. Şirketin kesinlikle düşmesi gerekiyor
-# 
-# 
-# * Elektronik çek yöntemini veya sorunsuz ve kullanıcı dostu hale getirin.
-
-
 # ### Categorical Variables for Churn mean
 
 for col in cat_cols:
@@ -395,7 +223,6 @@ for col in cat_cols:
 
 # ## Group 1 : Customer Information :
 # gender | SeniorCitizen | Partner | Dependents
-# 
 
 
 gender = df[df['Churn'] == 1]['gender'].value_counts()
@@ -433,16 +260,6 @@ plt.subplot(1,4,4)
 plt.pie(dependents,labels = ['No','Yes'],autopct='%1.1f%%',startangle = 90,explode = (0.1,0),colors = colors,
        wedgeprops = {'edgecolor' : 'black','linewidth': 1,'antialiased' : True})
 plt.title('Dependents');
-
-
-# ### Yorum
-# 
-# Hizmet değiştiren kadın ve erkek müşteriler arasında %50 - %50 oranında net bir ayrım gözlemliyoruz.
-# Bu nedenle, geçişin nedeni hizmetle veya müşterilerin kötü tepki verdiği bir süreçle ilgili bir şeydir!
-# 
-# Kaybolan müşterilerin %75'i SeniorCitizens(Kıdemli Vatandaş) değil! Bu, şirketin dikkatini başka yöne çekmesi gereken önemli bir bilgidir!
-# 
-# Tek başına yaşayan müşteriler hizmetleri kesmiş durumda. Partners & Dependents verilerine göre, ortaya çıkan müşterilerin ortalama %73,4'ü tek başına yaşıyordu.
 
 
 # ## Group 2: Services Subscribed by the Customer :¶
@@ -495,16 +312,6 @@ plt.pie(streamingmovies,labels = ['No', 'No Internet Service','Yes'],autopct='%1
 plt.title('StreamingMovies');
 
 
-# 
-# * Telefon Hizmeti sağlamasına rağmen müşterilerin büyük bir yüzdesi telefon hizmetini değiştirdi!
-# 
-# * Benzer şekilde, müşteri aboneliği iptali ne olursa olsun gerçekleştirildiğinden MultipleLines'ın kullanılabilirliği de önemli değildi!
-# 
-# * Müşteriler, Fiber Optik kabloların InternetService'i hizmetlerden %70'lik kesin bir vazgeçme oranıyla sağlama yaklaşımını kesinlikle takdir etmediler!
-# 
-# * StreamingTV ve StreamingMovies için bu hizmetlere sahip olmayan müşteriler aboneliklerini kesinlikle iptal etti, ancak müşterilerin ortalama %43,7'si akış içeriğini tüketmelerine rağmen aboneliklerini değiştirdi.
-
-
 # ## Group 2: Services Subscribed by the Customer
 # OnlineSecurity | OnlineBackup | DeviceProtection | TechSupport 
 
@@ -545,8 +352,6 @@ plt.pie(techsupport,labels = ['No', 'No Internet Service','Yes'],autopct='%1.1f%
 plt.title('TechSupport');
 
 
-# Yukarıdaki pasta grafikleri OnlineSecurity, OnlineBackup, DeviceProtection & TechSupport sağlamanın önemini vurguluyor, çünkü müşterilerin ortalama %71,6'sı bu özelliklerin eksikliği nedeniyle hizmetlerini kesiyor!
-
 # ## Group 3 : Contract | PaperlessBilling | PaymentMethod |¶
 
 
@@ -579,15 +384,6 @@ plt.pie(paymentmethod,labels = ['Bank Transfer (automatic)','Credit Card (automa
 plt.title('PaymentMethod');
 
 
-# ### Comment
-# 
-# * Aydan Aya Sözleşme süresi, %88,6'lık devasa bir müşteri kaybı söz konusu olduğunda baskın paya sahip!
-# 
-# * Kağıtsız Faturalandırma müşteriler tarafından beğenilmiyor gibi görünüyor!
-# 
-# * Elektronik çek, kaybın %57,3'ünü oluşturduğu için mutlaka ayıklanması gerekiyor. Bunu Postayla Çek, Banka Havalesi (otomatik) ve Kredi Kartı (otomatik) takip eder!
-
-
 # ### Numerical Variables vs Target Variable(Churn)
 
 def target_summary_with_num(dataframe,target, numerical_col):
@@ -617,14 +413,6 @@ for i in range(len(num_cols[1:])):
     plt.title(title);
 
 
-# ### Yorum
-# 
-# * MonthlyCharges grubu için 65 (13x5) - 105 (21x5) arası değerlerde kayıp oranı yüksektir. Bu MonthlyCharges değer aralığı müşterilerin geçiş yapmasına neden oldu.
-# 
-# * Çok yüksek sayıda müşteri, 500'ün altındaki TotalCharges için hizmetlerden vazgeçti
-
-
-
 # ## Numerical features vs Categorical features w.r.t Target variable (Churn)
 # 
 
@@ -641,354 +429,21 @@ for i in range(4):
     ax = sns.boxplot(x = l1[i],y = 'tenure',data = df,hue = 'Churn',palette = colors);
     plt.title('tenure vs ' + l1[i]);
     
-    
-
-
-# ## Yorumlar
-# 
-# * Erkek ve Kadın müşteri kaybı grafikleri birbirine çok benzer.
-# 
-# * SeniorCitizen, 0 - 35 ay arası kullanım süresi değerleri için hizmetlerden vazgeçmiştir. 20 - 35 ay, SeniorCitizen devam etme veya geçiş yapma konusunda bir tür karar verme dönemidir.
-# 
-# * Benzer şekilde iş ortakları olan müşteriler de hizmeti 5 ila 45 ay süreyle kullanmaya devam etti.
-
-
-
-# ### tenure vs Group 2: Services Subscribed by the Customer : PhoneService | MultipleLines | InternetService | StreamingTV | StreamingMovies 
-
-fig = plt.subplots(nrows = 1,ncols = 2,figsize = (15,5))
-
-for i in range(len(l2[0:2])):
-    plt.subplot(1,2,i + 1)
-    ax = sns.boxplot(x = l2[i],y = 'tenure',data = df,hue = 'Churn',palette = colors);
-    plt.title('tenure vs ' + l2[i]);
-
-fig = plt.subplots(nrows = 1, ncols = 1, figsize = (6,5))
-
-plt.subplot(1,1,1)
-ax = sns.boxplot(x = l2[2],y = 'tenure',data = df,hue = 'Churn',palette = colors);
-plt.title('tenure vs ' + l2[2]);
-    
-fig = plt.subplots(nrows = 1,ncols = 2,figsize = (12,5))
-
-for i in range(len(l2[3:5])):
-    plt.subplot(1,2,i + 1)
-    ax = sns.boxplot(x = l2[i + 3],y = 'tenure',data = df,hue = 'Churn',palette = colors);
-    plt.title('tenure vs ' + l2[i + 3]);
-
-
-# ### Yorumlar
-# 
-# * MutipleLines'ın varlığı, müşterilerin hizmetlerden vazgeçip vazgeçmemesine bakılmaksızın ortalama Aylık Ücretleri zorlar.
-# 
-# * Kullanım süresi ve PhoneService grafiği için, PhoneService'in kullanılabilirliği veya yansıtılmaması görselleri. Müşteriler muhtemelen yoğun telefon (arama - mesaj) kullanıcısı değildi.
-# 
-# * InternetService için, karışıklık yaklaşık 30 - 35 ay sürdüğü için müşteriler Fiber Optik kabloların kullanımı konusunda oldukça şüpheci görünüyorlar, ardından kabloyu ileriye taşımadan ya da yeni bir kabloya geçmeden önce!
-# 
-# * StreamingTV ve StreamingMovies'e benzer şekilde, yaklaşık 10 - 40 aylık bir kullanım dışı kalma süresi gözlemlenebilir!
-
-
-
-# ### tenure vs Group 2: Services Subscribed by the Customer : OnlineSecurity | OnlineBackup | DeviceProtection | TechSupport
-# 
-
-fig = plt.subplots(nrows = 2,ncols = 2,figsize = (20,14))
-for i in range(len(l2[-4:])):
-    plt.subplot(2,2,i + 1)
-    ax = sns.boxplot(x = l2[i - 4],y = 'tenure',data = df,hue = 'Churn',palette = colors);
-    plt.title('tenure vs ' + l2[i-4]);
-
-
-
-
-# ### Yorumlar
-# 
-# OnlineSecurity, OnlineBackup, DeviceProtection ve TechSupport için ortalama kayıp kullanım süresi değeri 25 aydır. Bu kayıp süresinin en yüksek değeri yaklaşık 45 aydır.
-# 
-# 30 - 35 aylık dönem, müşterilerin mevcut hizmetlere devam mı edecekleri yoksa yukarıdaki özelliklere mi geçecekleri konusunda bir telefon görüşmesi yaptıkları dönemdir!
-
-
-
-
-# ## tenure vs Group 3 : Contract | PaperlessBilling | PaymentMethod |¶
-# 
-
-fig = plt.subplots(nrows = 1,ncols = 3,figsize = (25,7))
-for i in range(len(l3)):
-    plt.subplot(1,3,i + 1)
-    ax = sns.boxplot(x = l3[i],y = 'tenure',data = df,hue = 'Churn',palette = colors);
-    plt.title('tenure vs ' + l3[i]);
-
-
-# ### Yorumlar
-# 
-# * Müşteriler hizmetler için Bir yıllık ve İki yıllık sözleşmeler imzaladıklarında, hizmetleri sırasıyla yaklaşık 25 ve 45 ay boyunca devam ettirecek gibi görünüyorlar! Ancak hizmetleri sorgulamaya başlıyorlar ve sırasıyla 35 ay ve 55 ay sınırından geçiş yapmayı düşünüyorlar!
-# 
-# * Kağıtsız Faturalandırmadan bağımsız olarak müşteriler 1. aydan itibaren geçiş yapmayı düşünüyor.
-# 
-# * Ödeme Yöntemi söz konusu olduğunda, Banka Havalesi (otomatik) ve Kredi Kartının (otomatik) ortalama kayıp vadesi, 20 ayın üzerinde, Elektronik çek ve Posta çekinin neredeyse iki katıdır (sırasıyla yaklaşık 10 ay ve yaklaşık 5 ay).
-
-
-
-
-
-# ## MonthlyCharges vs Group 1 : Customer Information : gender | SeniorCitizen | Partner | Dependents
-# 
-
-fig = plt.subplots(nrows = 2,ncols = 2,figsize = (15,10))
-for i in range(4):
-    plt.subplot(2,2,i+1)
-    ax = sns.boxplot(x = l1[i],y = 'MonthlyCharges',data = df,hue = 'Churn',palette = colors); 
-    plt.title('MonthlyCharges vs ' + l1[i]);
-
-
-# ### Yorumlar
-# 
-# 
-# * Yukarıda belirtilen tüm özellikler için, kaybetmeyen müşterilerin medyan değeri, kaybetmeyen müşterilerin alt sınırına çok yakındır.
-# 
-# * Erkek ve Kadın müşterilerin ortalama Aylık Ücretleri 60 civarındadır. Kıdemli Vatandaşlar için bu değer 80'e çıkarılmıştır.
-# 
-# * Partner ile birlikte yaşayan müşterilerin, tek başına yaşayanlara göre daha yüksek bir alt abone kaybı limiti (MontlyCharges) 70'tir; MonthlyCharges 60'ın biraz altındadır!
-
-
-
-
-# ### MonthlyCharges vs Group 2: Services Subscribed by the Customer : PhoneService | MultipleLines | InternetService | StreamingTV | StreamingMovies
-# 
-
-fig = plt.subplots(nrows = 1,ncols = 2,figsize = (15,5))
-
-for i in range(len(l2[0:2])):
-    plt.subplot(1,2,i + 1)
-    ax = sns.boxplot(x = l2[i],y = 'MonthlyCharges',data = df,hue = 'Churn',palette = colors);
-    plt.title('MonthlyCharges vs ' + l2[i]);
-
-fig = plt.subplots(nrows = 1, ncols = 1, figsize = (6,5))
-
-plt.subplot(1,1,1)
-ax = sns.boxplot(x = l2[2],y = 'MonthlyCharges',data = df,hue = 'Churn',palette = colors);
-plt.title('MonthlyCharges vs ' + l2[2]);
-    
-fig = plt.subplots(nrows = 1,ncols = 2,figsize = (12,5))
-
-for i in range(len(l2[3:5])):
-    plt.subplot(1,2,i + 1)
-    ax = sns.boxplot(x = l2[i + 3],y = 'MonthlyCharges',data = df,hue = 'Churn',palette = colors);
-    plt.title('MonthlyCharges vs ' + l2[i + 3]);
-
-
-# ## Yorumlar
-# 
-# * Fiber Optik kabloların aylık ücretleri çok yüksektir. Bu kadar yüksek müşteri kaybının nedeni bu olabilir.
-# 
-# * Benzer şekilde StreamingTV ve StreamingMovies'in Aylık Ücretleri de oldukça yüksektir.
-# 
-# * PhoneService için MonthlyCharges aralığı 25 - 85 arasındadır ancak müşteriler MonthlyCharges'ın 75 değerinden abonelikten çıkmayı düşünürler.
-
-
-
-
-# ## MonthlyCharges vs Group 2: Services Subscribed by the Customer : OnlineSecurity | OnlineBackup | DeviceProtection | TechSupport
-
-
-fig = plt.subplots(nrows = 2,ncols = 2,figsize = (20,14))
-for i in range(len(l2[-4:])):
-    plt.subplot(2,2,i + 1)
-    ax = sns.boxplot(x = l2[i - 4],y = 'MonthlyCharges',data = df,hue = 'Churn',palette = colors);
-    plt.title('MonthlyCharges vs ' + l2[i-4]);
-
-
-
-
-
-# ## Yorumlar
-# 
-# * OnlineSecurity, OnlineBackup, DeviceProtection ve TechSupport için değer aralığı yaklaşık 50 ila 100 arasındadır.
-# 
-# * Bu hizmetlere abone olan müşteriler, muhtemelen MonthlyCharges nedeniyle aboneliğini iptal etmeyi düşünmüyorlar çünkü abonelikten çıkıp devam eden müşterilerin değer aralığı hemen hemen aynı!
-
-
-
-
-
-# ### MonthlyCharges vs Group 3 : Contract | PaperlessBilling | PaymentMethod 
-
-fig = plt.subplots(nrows = 1,ncols = 3,figsize = (25,7))
-
-for i in range(len(l3)):
-    plt.subplot(1,3,i + 1)
-    ax = sns.boxplot(x = l3[i],y = 'MonthlyCharges',data = df,hue = 'Churn',palette = colors);
-    title = 'MonthlyCharges vs ' + l3[i]
-    plt.title(title);
-
-
-# ### Comments
-# 
-# * Aylık Ücretlerin alt limiti Aydan Aya sözleşme için Bir yıllık ve İki yıllık sözleşmelerden daha yüksektir. Ancak Aylık sözleşmelerde hizmeti bırakan müşterilerin alt limiti daha düşüktür.
-# 
-# * Elektronik çekin alt limiti çok yüksektir ve müşterilerin onu kullanmaktan vazgeçmesine neden olabilecek çok büyük bir faktör olabilir!
-# 
-# * Posta çeki ise ayrılan ve devam eden müşterilerin en düşük başlangıç değerlerine sahiptir.
-
-
-
-# ## TotalCharges vs Group 1 : Customer Information : gender | SeniorCitizen | Partner | Dependents 
-
-fig = plt.subplots(nrows = 2,ncols = 2,figsize = (15,10))
-for i in range(4):
-    plt.subplot(2,2,i+1)
-    ax = sns.boxplot(x = l1[i],y = 'TotalCharges',data = df,hue = 'Churn',palette = colors);
-    plt.title('TotalCharges vs ' + l1[i]);
-
-
-# ### Yorumlar
-# 
-# * Erkek ve kadın müşteriler için Toplam Ücretler tamamen aynıdır! Hizmete devam eden SeniorCitizens(KıdemliVatandaşların) Toplam Ücret başlangıç ve kapanış değerleri daha yüksektir.
-# 
-# * Eşleriyle birlikte yaşayan müşterilerin Toplam Ücret ortalama değeri, yalnız yaşayanlara kıyasla daha yüksektir!
-
-
-
-# ## TotalCharges vs Group 2: Services Subscribed by the Customer : PhoneService | MultipleLines | InternetService | StreamingTV | StreamingMovies 
-# 
-
-
-fig = plt.subplots(nrows = 1,ncols = 2,figsize = (15,5))
-
-for i in range(len(l2[0:2])):
-    plt.subplot(1,2,i + 1)
-    ax = sns.boxplot(x = l2[i],y = 'TotalCharges',data = df,hue = 'Churn',palette = colors);
-    plt.title('TotalCharges vs ' + l2[i]);
-
-fig = plt.subplots(nrows = 1, ncols = 1, figsize = (6,5))
-
-plt.subplot(1,1,1)
-ax = sns.boxplot(x = l2[2],y = 'TotalCharges',data = df,hue = 'Churn',palette = colors);
-plt.title('TotalCharges vs ' + l2[2]);
-    
-fig = plt.subplots(nrows = 1,ncols = 2,figsize = (12,5))
-
-for i in range(len(l2[3:5])):
-    plt.subplot(1,2,i + 1)
-    ax = sns.boxplot(x = l2[i + 3],y = 'TotalCharges',data = df,hue = 'Churn',palette = colors);
-    plt.title('TotalCharges vs ' + l2[i + 3]);
-
-
-# ### Yorumlar
-# 
-# * TelefonServis Toplam Ücretleri 0 - 4000 arasında değişmektedir. Ancak müşteriler, Toplam Ücretler nedeniyle Telefon Servisi hakkında 1000 civarından itibaren 2. düşüncelere sahip olmaya başlarlar.
-# 
-# * Benzer şekilde müşteriler MultipleLines'a 2000 civarında ödeme yapmaktan çekinmeye başlıyor. Ancak bazı müşteriler, MultipleLines'a 6000 civarında bir değer ödedikleri için umutsuz görünüyorlar!
-# 
-# * Fiber Optik kablo ödemesine gelince, müşteriler 2000 civarında ödeme yaparak ürünleri test ediyor!
-# 
-# * Fiber Optik, StreamingTV ve StreamingMovies'e benzer şekilde hizmetlere devam eden müşteriler 3000 - 6000 arasında ödeme yapar.
-
-
-
-
-# ## TotalCharges vs Group 2: Services Subscribed by the Customer : OnlineSecurity | OnlineBackup | DeviceProtection | TechSupport |
-# 
-
-fig = plt.subplots(nrows = 2,ncols = 2,figsize = (20,14))
-for i in range(len(l2[-4:])):
-    plt.subplot(2,2,i + 1)
-    ax = sns.boxplot(x = l2[i - 4],y = 'TotalCharges',data = df,hue = 'Churn',palette = colors);
-    plt.title('TotalCharges vs ' + l2[i-4]);
-
-
-# Yukarıda belirtilen tüm özellikler için müşteriler, 2000 yılı civarında bunlar için ödeme yapma konusunda şüpheci olmaya başlıyor. Kaybedilen müşterilerin bu medyan değeri, bu hizmeti sürdüren müşterilerin alt sınırına çok yakındır.
-# 
-# Abonelikten çıkmayan müşteriler 2000 - 6000 arası Toplam Ücret ödemeye hazırdır.
-
-
-
-
-# ## TotalCharges vs Group 3 : Contract | PaperlessBilling | PaymentMethod |¶
-# 
-
-fig = plt.subplots(nrows = 1,ncols = 3,figsize = (25,7))
-
-for i in range(len(l3)):
-    plt.subplot(1,3,i + 1)
-    ax = sns.boxplot(x = l3[i],y = 'TotalCharges',data = df,hue = 'Churn',palette = colors);
-    plt.title('TotalCharges vs ' + l3[i]);
-
-
-# ### Yorumlar
-# 
-# * Bir yıllık ve iki yıllık sözleşmeli hizmetlerden vazgeçmeye karar veren müşterilerin ortalama değerleri 4000 ve 6000 civarında yüksek. İki yıllık sözleşmeli müşterilerden bazıları 7000 civarında ödeme bile yaptı.
-# 
-# * PaymentMethod için müşteriler 0 - 2000 arası daha kısa bir aralık için Elektronik çek kullanarak ödeme yapmaya şüpheyle yaklaşırken, Banka havalesi (otomatik) ve Kredi Kartı (otomatik) için bu aralık 0 - 4000 civarındadır.
-
-
-
-# ## Numerical features vs Numerical features w.r.t Target variable (Churn) :
-# 
-
-a = 0
-fig,ax = plt.subplots(nrows = 3,ncols = 1,figsize = (15,15))
-for i in range(len(num_cols)):
-    for j in range(len(num_cols)):
-        if i != j and j > i:
-            a += 1
-            plt.subplot(3,1,a)
-            sns.scatterplot(x = num_cols[i],y = num_cols[j],data = df,hue = 'Churn',palette = colors,edgecolor = 'black');
-            plt.legend(['No Churn','Churn'],loc = 'upper left',)
-            title = num_cols[i] + ' vs ' + num_cols[j]
-            plt.title(title)
-
-
-
-
-# ### Comments
-# 
-# 0 - 20 aylık kullanım süresi için, müşterilerin herhangi bir MonthlyCharges değerinde oldukça dalgalanması.
-# 
-# 20 - 60 ay arasındaki kullanım süresi boyunca, MonthlyCharges değerlerinin (70 - 120) en üst sınırındaki müşteriler hizmetlerden ayrılmaya başlar.
-# 
-# TotalCharges ve görev süresi için, görev süresi arttıkça TotalCharges da artar! Planlarından çıkan müşteriler, kullanım süreleri boyunca en yüksek ücretlendirilen müşteriler ve Toplam Ücretleri ortada olan birkaç müşteridir!
-# 
-# Aylık Ücretler 70 ve üzerine ulaştığında müşteriler aboneliklerini iptal etmeye karar vermiş görünüyordu.
-
-
-
 
 # # Feature Engineering
 
 mms = MinMaxScaler() # Normalization
-ss = StandardScaler() # Standardization
 
 df.drop(columns = ['MonthlyCharges_Group','TotalCharges_Group'], inplace = True)
 
 df['tenure'] = mms.fit_transform(df[['tenure']])
 df['MonthlyCharges'] = mms.fit_transform(df[['MonthlyCharges']])
 df['TotalCharges'] = mms.fit_transform(df[['TotalCharges']])
-df.head()
-
-
-# ### Yorumlar
-# 
-# Makine öğrenimi modeli, özelliklerin değerlerinin birimlerini anlamıyor. Girdiyi basit bir sayı gibi ele alır ancak bu değerin gerçek anlamını anlamaz. Dolayısıyla verileri ölçeklendirmek gerekli hale geliyor.
-# 
-# 
-# * Veri ölçeklendirme için 2 seçeneğimiz var: 1) Normalleştirme 2) Standardizasyon.
-# 
-# * Algoritmaların çoğu, verilerin normal (Gaussian) dağıldığını varsaydığından, verileri normal dağılım göstermeyen özellikler için normalleştirme yapılır ve değerleri karşılaştırıldığında değerleri çok büyük veya çok küçük olan normal dağılımlı özellikler için standardizasyon yapılır. diğer özelliklere.
-# 
-# * Normalleştirme: Kullanım süresi, MonthlyCharges ve TotalCharges özellikleri sağa çarpık ve iki modlu bir veri dağılımı sergiledikleri için normalleştirildi.
-# 
-# * Standardizasyon: Yukarıdaki veriler için hiçbir özellik standartlaştırılmamıştır.
-
-
 
 
 # ### Correlation Matrix
-
 plt.figure(figsize = (20,5))
 sns.heatmap(df.corr(),cmap = colors,annot = True);
-
 
 corr = df.corrwith(df['Churn']).sort_values(ascending = False).to_frame()
 corr.columns = ['Correlations']
@@ -1025,10 +480,7 @@ sns.heatmap(featureScores.sort_values(ascending = False,by = 'Chi Squared Score'
 plt.title('Selection of Categorical Features');
 
 
-# * PhoneService, cinsiyet, StreamingTV, StreamingMovies, MultipleLines ve InternetService, Churn ile çok düşük bir ilişki göstermektedir.
-
-
-# ### Feature Selection for Numerical Features :¶
+# ### Feature Selection for Numerical Features 
 # 
 features = df.loc[:,num_cols]
 target = df.loc[:,'Churn']
@@ -1043,15 +495,8 @@ sns.heatmap(featureScores.sort_values(ascending = False,by = 'ANOVA Score'),anno
 plt.title('Selection of Numerical Features');
 
 
-# ### Yorumlar
-# 
-# ANOVA testine göre ANOVA puanının değeri ne kadar yüksekse, özelliğin önemi de o kadar yüksektir.
-# 
-# Yukarıdaki sonuçlardan modelleme için tüm sayısal özellikleri dahil etmemiz gerekir.
-
 df.drop(columns = ['PhoneService', 'gender','StreamingTV','StreamingMovies','MultipleLines','InternetService'],inplace = True)
 df.head()
-
 
 
 # ### Balancing
@@ -1153,34 +598,4 @@ stack = StackingClassifier(estimators = [('classifier_xgb',classifier_xgb),
 model(stack,x_train,y_train,x_test,y_test)
 
 model_evaluation(stack,x_test,y_test)
-
-
-
-
-
-# # Summary
-# 
-# * 3 tür müşteri hedeflenmelidir : SeniorCitizen, Living with a Partner, living all alone!
-# 
-# * SeniorCitizen müşterilerinin sayısı az ancak Monthly Charges alt limitleri diğer müşterilere göre daha yüksektir. Bu nedenle Senior Citizen müşterileri en yüksek doları ödemeye hazırdır ancak bu düzeyde hizmete ihtiyaçları vardır. Partnerli müşteriler ve yalnız yaşayan müşteriler Aylık Ücreti(Monthly Charges) 65'in altında olan hizmetleri tercih etmektedir.
-# 
-# * İlk 6 aylık görev süresi(tenure 1st 6months) boyunca, bu dönem müşteriler için en kritik ve belirsiz olduğundan, OnlineSecurity, OnlineBackup, DeviceProtection ve TechSupport konularına kapsamlı bir şekilde odaklanması gerekiyor. Bu hizmetler için 40 - 50 aylık kayıp süresini düşürmeleri gerekiyor!
-# 
-# * Müşteriler için sağlam bir destek hizmetleri hattı oluşturduktan sonra, Telefon Hizmeti ve İnternet Hizmeti için sırasıyla MultipleLines ve Fiber Optik kabloların kullanımını artırmaları gerekiyor.   Ancak bu 2 hizmetin önündeki en büyük engel, MonthlyCharges'da 75+'nin başlangıç noktasıdır.
-# 
-# * Bu nedenle, Telefon Hizmeti ve İnternet Hizmeti için sağlanan, bu Aylık Ücretlerin ortalamasının 100 - 120 aralığında olacağı seçenek kombinasyonlarını oluşturmaları gerekir:
-# -- No MultipleLines + OpticFiber
-# -- MultipleLines + DSL
-# 
-# * Bu, ortalama Aylık Ücreti muhtemelen 60 - 70 olan Çoklu Hat Yok + DSL(No MultipleLines+ DSL) kombinasyonunu seçme seçeneğini tamamen ortadan kaldıracağından kullanıcının ortalama gelirini artıracaktır!
-# 
-# 
-# * StreamingTV ve StreamingMovies'in uygun fiyatlı hale getirilmesi ve aynı zamanda kullanım süresinin kısaltılması gerekiyor. Bu hizmetlerin içeriği her türden müşteriyi hedeflemelidir. Bunun kolay ve sorunsuz bir Ödeme Yöntemi ile takip edilmesi gerekir.
-# 
-# 
-# * Yüksek kayıp nedeniyle ödeme amaçlı Elektronik çeke son verilmesi ve tamamen Banka Havalesi (otomatik) ve Kredi Kartına (otomatik) odaklanması gerekiyor! Ancak, bu 2 Ödeme Yöntemi için ortalama kayıp süresini 20 ayın üzerinde azaltmaları istenecektir; bu da Elektronik çekin kullanım süresinin iki katıdır. 
-# 
-# * Aylık Ücretlerde Elektronik çekin alt limiti 60 civarındayken, Banka Havalesi (otomatik) ve Kredi Kartının (otomatik) alt limiti 20 civarındadır. Kağıtsız Faturalandırma, 60 başlangıç noktasıyla başka bir pahalı özelliktir; diğer seçenekler ise MonthlyCharges'da 20'den başlayan ucuzdur.
-
-
 
