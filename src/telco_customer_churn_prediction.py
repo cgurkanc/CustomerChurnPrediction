@@ -112,7 +112,7 @@ def check_data(dataframe,head=5):
     print("\n" + 40 * "-" + "Describe the Data".center(40) + 40 * "-")
     print(dataframe.describe([0.01, 0.05,0.10, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99]).T)
 
-check_data(df)
+check_data(df) # pylint: disable=line-too-long
 
 df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
 
