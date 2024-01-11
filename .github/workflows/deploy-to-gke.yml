@@ -1,0 +1,46 @@
+name: Build and Deploy to GKE
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+    
+      
+    - name: Authenticate with Google Cloud
+      uses: google-github-actions/auth@v0.4.0
+      with:
+            credentials_json: ${{ secrets.GKE_SA_KEY }}
+
+    - name: Set Project ID
+      run: gcloud config set project project-id
+     
+    - name: Get GKE credentials
+      run: gcloud container clusters get-credentials name --zone zone --project project-id
+
+
+    - name: Build and push Docker image
+      run: |
+        # Docker imajını build etme ve push etme komutları
+
+    - name: Set up kubectl
+      run: |
+        gcloud container clusters get-credentials name --zone zone --project project-id
+
+    - name: Install gke-gcloud-auth-plugin
+      run: gcloud components install gke-gcloud-auth-plugin
+
+    - name: Deploy to GKE
+      run: |
+        kubectl apply -f deployment.yaml
+
+        
