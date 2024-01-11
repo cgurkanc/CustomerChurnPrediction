@@ -38,15 +38,15 @@
 # pylint: disable=line-too-long,another-error-code
 # pylint: disable=redefined-outer-name
 # pylint: disable=trailing-whitespace
+# pylint: disable=missing-function-docstring
 
+from datetime import date
+from collections import Counter
 import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
 import missingno as msno
-from datetime import date
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
@@ -58,14 +58,12 @@ from lightgbm import LGBMClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import StackingClassifier
 
 
 import imblearn
-from collections import Counter
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
@@ -160,10 +158,6 @@ cat_cols, num_cols, cat_but_car = grab_col_names(df)
 
 
 # ## Numerik Değişkenler
-
-num_cols
-
-df[num_cols].describe().T
 
 def num_summary(dataframe, numerical_col, plot=False):
     quantiles = [0.10, 0.20, 0.40, 0.50, 0.60, 0.80, 0.90, 0.95, 0.99]
