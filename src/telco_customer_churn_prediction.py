@@ -36,6 +36,8 @@
 # pylint: disable=unused-import
 # pylint: disable=missing-function-docstring
 # pylint: disable=unnecessary-semicolon
+# pylint: disable=line-too-long
+# pylint: disable=trailing-whitespace
 
 # # Importing necessary libraries and dataset
 
