@@ -33,7 +33,11 @@
 # # Importing necessary libraries and dataset
 
 # pylint: disable=import-error
-
+# pylint: disable=unused-import
+# pylint: disable=unnecessary-semicolon
+# pylint: disable=line-too-long
+# pylint: disable=redefined-outer-name
+# pylint: disable=trailing-whitespace
 
 import numpy as np
 import pandas as pd
