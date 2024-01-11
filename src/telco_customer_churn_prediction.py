@@ -98,7 +98,6 @@ from sklearn.metrics import precision_recall_curve
 df = pd.read_csv("data/WA_Fn-UseC_-Telco-Customer-Churn.csv")
 df.head()
 
-
 df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
 
 # Check for any new missing values in 'TotalCharges'
@@ -118,9 +117,7 @@ df.isnull().sum()
 
 df.drop('customerID', axis=1, inplace=True)
 
-
 # ## Summary Statistics
-
 
 def grab_col_names(dataframe, cat_th=10, car_th=20):
  
