@@ -42,6 +42,8 @@
 # pylint: disable=unused-argument
 # pylint: disable=ungrouped-imports
 # pylint: disable=consider-using-f-string
+# pylint: disable=pointless-statement
+
 
 from datetime import date
 from collections import Counter
