@@ -43,7 +43,7 @@
 # pylint: disable=ungrouped-imports
 # pylint: disable=consider-using-f-string
 # pylint: disable=pointless-statement
-
+# pylint: disable=missing-module-docstring
 
 from datetime import date
 from collections import Counter
