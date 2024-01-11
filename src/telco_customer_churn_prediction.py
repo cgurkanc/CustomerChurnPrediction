@@ -35,10 +35,13 @@
 # pylint: disable=import-error
 # pylint: disable=unused-import
 # pylint: disable=unnecessary-semicolon
-# pylint: disable=line-too-long,another-error-code
+# pylint: disable=line-too-long
 # pylint: disable=redefined-outer-name
 # pylint: disable=trailing-whitespace
 # pylint: disable=missing-function-docstring
+# pylint: disable=unused-argument
+# pylint: disable=ungrouped-imports
+# pylint: disable=consider-using-f-string
 
 from datetime import date
 from collections import Counter
@@ -532,7 +535,7 @@ def model_evaluation(classifier,x_test,y_test):
     # Confusion Matrix
     cm = confusion_matrix(y_test,classifier.predict(x_test))
     names = ['True Neg','False Pos','False Neg','True Pos']
-    counts = [value for value in cm.flatten()]
+    counts = list(cm.flatten())
     percentages = ['{0:.2%}'.format(value) for value in cm.flatten()/np.sum(cm)]
     labels = [f'{v1}\n{v2}\n{v3}' for v1, v2, v3 in zip(names,counts,percentages)]
     labels = np.asarray(labels).reshape(2,2)
