@@ -30,6 +30,11 @@
 # * TotalCharges: Müşteriden alınan yıllık tutar
 # * Churn
 
+
+# pylint: disabled=import-error
+# pylint: disabled=redefined-outer-name
+# pylint: disabled=unused-import
+
 # # Importing necessary libraries and dataset
 
 from datetime import date
