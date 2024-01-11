@@ -22,10 +22,10 @@ jobs:
             credentials_json: ${{ secrets.GKE_SA_KEY }}
 
     - name: Set Project ID
-      run: gcloud config set project project-id
+      run: gcloud config set project rare-truck-410619
      
     - name: Get GKE credentials
-      run: gcloud container clusters get-credentials name --zone zone --project project-id
+      run: gcloud container clusters get-credentials my-gke-cluster --zone europe-west3 --project rare-truck-410619
 
 
     - name: Build and push Docker image
@@ -34,7 +34,7 @@ jobs:
 
     - name: Set up kubectl
       run: |
-        gcloud container clusters get-credentials name --zone zone --project project-id
+        gcloud container clusters get-credentials my-gke-cluster --zone europe-west3 --project rare-truck-410619
 
     - name: Install gke-gcloud-auth-plugin
       run: gcloud components install gke-gcloud-auth-plugin
