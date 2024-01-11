@@ -31,9 +31,9 @@
 # * Churn
 
 
-# pylint: disabled=import-error
-# pylint: disabled=redefined-outer-name
-# pylint: disabled=unused-import
+# pylint: disable=import-error
+# pylint: disable=redefined-outer-name
+# pylint: disable=unused-import
 
 # # Importing necessary libraries and dataset
 
