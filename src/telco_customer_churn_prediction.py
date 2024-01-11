@@ -34,6 +34,8 @@
 # pylint: disable=import-error
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-import
+# pylint: disable=missing-function-docstring
+# pylint: disable=unnecessary-semicolon
 
 # # Importing necessary libraries and dataset
 
@@ -110,8 +112,12 @@ df.drop('customerID', axis=1, inplace=True)
 # ## Summary Statistics
 
 def grab_col_names(dataframe, cat_th=10, car_th=20):
- 
-   # cat_cols, cat_but_car
+    """
+    Kategorik ve numerik değişkenlerin eşik değerine göre sınıflandırılması
+
+
+    """
+   #< cat_cols, cat_but_car
     cat_cols = [col for col in dataframe.columns if dataframe[col].dtypes == "O"]
     num_but_cat = [col for col in dataframe.columns if dataframe[col].nunique() < cat_th and
                    dataframe[col].dtypes != "O"]
