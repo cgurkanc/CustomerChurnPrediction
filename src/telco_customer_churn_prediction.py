@@ -44,6 +44,7 @@
 # pylint: disable=consider-using-f-string
 # pylint: disable=pointless-statement
 # pylint: disable=missing-module-docstring
+# pylint: disable=trailing-newlines
 
 from datetime import date
 from collections import Counter
