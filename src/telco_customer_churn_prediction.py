@@ -32,21 +32,6 @@
 
 # # Importing necessary libraries and dataset
 
-# pylint: disable=import-error
-# pylint: disable=unused-import
-# pylint: disable=unnecessary-semicolon
-# pylint: disable=line-too-long
-# pylint: disable=redefined-outer-name
-# pylint: disable=trailing-whitespace
-# pylint: disable=missing-function-docstring
-# pylint: disable=unused-argument
-# pylint: disable=ungrouped-imports
-# pylint: disable=consider-using-f-string
-# pylint: disable=pointless-statement
-# pylint: disable=missing-module-docstring
-# pylint: disable=trailing-newlines
-# pylint: disable=C0301
-
 from datetime import date
 from collections import Counter
 import numpy as np
@@ -503,6 +488,17 @@ Counter(t1)
 
 # # MODELING
 
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from xgboost import XGBClassifier
+from catboost import CatBoostClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import StackingClassifier
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_auc_score
+
 x_train, x_test, y_train, y_test = train_test_split(f1, t1, test_size = 0.20, random_state = 2)
 
 
@@ -589,3 +585,12 @@ model(stack,x_train,y_train,x_test,y_test)
 
 model_evaluation(stack,x_test,y_test)
 
+# Summary
+
+# * 3 tür müşteri hedeflenmelidir : SeniorCitizen, Living with a Partner, living all alone!
+
+# * SeniorCitizen müşterilerinin sayısı az ancak Monthly Charges alt limitleri diğer müşterilere göre daha yüksektir. Bu nedenle Senior Citizen müşterileri en yüksek doları ödemeye hazırdır ancak bu düzeyde hizmete ihtiyaçları vardır. Partnerli müşteriler ve yalnız yaşayan müşteriler Aylık Ücreti(Monthly Charges) 65'in altında olan hizmetleri tercih etmektedir.
+
+# * İlk 6 aylık görev süresi(tenure 1st 6months) boyunca, bu dönem müşteriler için en kritik ve belirsiz olduğundan, OnlineSecurity, OnlineBackup, DeviceProtection ve TechSupport konularına kapsamlı bir şekilde odaklanması gerekiyor. Bu hizmetler için 40 - 50 aylık kayıp süresini düşürmeleri gerekiyor!
+
+# * Müşteriler için sağlam bir destek hizmetleri hattı oluşturduktan sonra, Telefon Hizmeti ve İnternet Hizmeti için sırasıyla MultipleLines ve Fiber Optik kabloların kullanımını artırmaları gerekiyor.   Ancak bu 2 hizmetin önündeki en büyük engel, MonthlyCharges'da 75+'nin başlangıç noktasıdır.
