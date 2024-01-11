@@ -99,22 +99,6 @@ df = pd.read_csv("data/WA_Fn-UseC_-Telco-Customer-Churn.csv")
 df.head()
 
 
-# # Exploratory Data Analysis
-
-def check_data(dataframe,head=5):
-    print(20*"-" + "Information".center(20) + 20*"-")
-    print(dataframe.info())
-    print(20*"-" + "Data Shape".center(20) + 20*"-")
-    print(dataframe.shape)
-    print("\n" + 20*"-" + "The First 5 Data".center(20) + 20*"-")
-    print(dataframe.head())
-    print("\n" + 20 * "-" + "Missing Values".center(20) + 20 * "-")
-    print(dataframe.isnull().sum())
-    print("\n" + 40 * "-" + "Describe the Data".center(40) + 40 * "-")
-    print(dataframe.describe([0.01, 0.05,0.10, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99]).T)
-
-check_data(df) # pylint: disable=line-too-long
-
 df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
 
 # Check for any new missing values in 'TotalCharges'
