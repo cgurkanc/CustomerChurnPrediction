@@ -32,6 +32,7 @@
 
 # # Importing necessary libraries and dataset
 
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -42,17 +43,48 @@ from datetime import date
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import LocalOutlierFactor
-from sklearn.preprocessing import MinMaxScaler, LabelEncoder, StandardScaler, RobustScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
+
+from sklearn.preprocessing import MinMaxScaler,StandardScaler,RobustScaler
+
+from lightgbm import LGBMClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import StackingClassifier
+
+
+import imblearn
+from collections import Counter
+from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import RandomUnderSampler
+from imblearn.pipeline import Pipeline
+
+
+from sklearn.feature_selection import SelectKBest
+from sklearn.feature_selection import chi2,mutual_info_classif
+from sklearn.feature_selection import f_classif
+
+from sklearn.preprocessing import LabelEncoder
+
+
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import RocCurveDisplay
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import RepeatedStratifiedKFold
+from sklearn.metrics import precision_recall_curve
 
 
 df = pd.read_csv("data/WA_Fn-UseC_-Telco-Customer-Churn.csv")
@@ -925,7 +957,6 @@ for i in range(len(num_cols)):
 
 # # Feature Engineering
 
-from sklearn.preprocessing import MinMaxScaler,StandardScaler
 mms = MinMaxScaler() # Normalization
 ss = StandardScaler() # Standardization
 
@@ -968,8 +999,6 @@ plt.title('Correlation w.r.t Outcome');
 
 
 # ### Feature Selection 
-
-from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
 
 df = df.copy(deep = True)
@@ -979,11 +1008,6 @@ print('Label Encoder Transformation')
 for i in text_data_features :
     df[i] = le.fit_transform(df[i])
     print(i,' : ',df[i].unique(),' = ',le.inverse_transform(df[i].unique()))
-
-
-
-from sklearn.feature_selection import SelectKBest
-from sklearn.feature_selection import chi2,mutual_info_classif
 
 
 df.loc[:,cat_cols]
@@ -1006,8 +1030,6 @@ plt.title('Selection of Categorical Features');
 
 # ### Feature Selection for Numerical Features :¶
 # 
-from sklearn.feature_selection import f_classif
-
 features = df.loc[:,num_cols]
 target = df.loc[:,'Churn']
 
@@ -1034,24 +1056,6 @@ df.head()
 
 # ### Balancing
 
-# Dengesiz verilerle başa çıkmak için 2 seçenek vardır:
-# 
-# * Yetersiz örnekleme: Hedef değişkenin çoğunluk örneklerini kırpın.
-# 
-# * Aşırı Örnekleme : Hedef değişkenin azınlık örneklerini çoğunluk örneklerine yükseltin.
-# 
-# * Düşük örnekleme ve aşırı örnekleme ile deneme yanılma yaptıktan sonra, aşırı örneklemeye karar verdik!
-# 
-# Veri dengeleme için imblearn kullanacağız.
-# pip statement : pip install imbalanced-learn
-
-import imblearn
-from collections import Counter
-from imblearn.over_sampling import SMOTE
-from imblearn.under_sampling import RandomUnderSampler
-from imblearn.pipeline import Pipeline
-
-
 over = SMOTE(sampling_strategy = 1)
 
 f1 = df.iloc[:,:13].values
@@ -1063,19 +1067,6 @@ Counter(t1)
 
 
 # # MODELING
-
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import roc_auc_score
-from sklearn.metrics import RocCurveDisplay
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import classification_report
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import RepeatedStratifiedKFold
-from sklearn.metrics import precision_recall_curve
-
-
 
 x_train, x_test, y_train, y_test = train_test_split(f1, t1, test_size = 0.20, random_state = 2)
 
@@ -1107,19 +1098,13 @@ def model_evaluation(classifier,x_test,y_test):
 # ### 1-) XGB Classifier
 
 
-from xgboost import XGBClassifier
-
 classifier_xgb = XGBClassifier(learning_rate= 0.01,max_depth = 3,n_estimators = 1000)
-
 model(classifier_xgb,x_train,y_train,x_test,y_test)
 
 model_evaluation(classifier_xgb,x_test,y_test)
 
 
 # ### 2) LGBM Classifier
-
-from lightgbm import LGBMClassifier
-
 classifier_lgbm = LGBMClassifier(learning_rate= 0.01,max_depth = 3,n_estimators = 1000, force_col_wise='true',verbose=-1)
 
 model(classifier_lgbm,x_train,y_train,x_test,y_test)
@@ -1129,8 +1114,6 @@ model_evaluation(classifier_lgbm,x_test,y_test)
 
 
 # ## Random Forest Classifier
-
-from sklearn.ensemble import RandomForestClassifier
 classifier_rf = RandomForestClassifier(max_depth = 4,random_state = 0)
 
 model(classifier_rf,x_train,y_train,x_test,y_test)
@@ -1141,7 +1124,6 @@ model_evaluation(classifier_rf,x_test,y_test)
 
 # # Decision Tree Classifier
 
-from sklearn.tree import DecisionTreeClassifier
 classifier_dt = DecisionTreeClassifier(random_state = 1000,max_depth = 4,min_samples_leaf = 1)
 
 model(classifier_dt,x_train,y_train,x_test,y_test)
@@ -1152,7 +1134,6 @@ model_evaluation(classifier_dt,x_test,y_test)
 # ## 5) Stack of XGBClassifier, LightGBMClassifier, Random Forest Classifer & Decision Tree Classifier
 
 
-from sklearn.ensemble import StackingClassifier
 
 stack = StackingClassifier(estimators = [('classifier_xgb',classifier_xgb),
                                          ('classifier_lgbm',classifier_lgbm),
