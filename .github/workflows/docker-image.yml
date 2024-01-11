@@ -28,7 +28,7 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        tags: gurkancnk/github:latest
+        tags: gurkancnk/customerchurn:latest
 
     - name: Logout from Docker Hub
       run: docker logout
